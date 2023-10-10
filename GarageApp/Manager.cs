@@ -111,41 +111,41 @@ namespace GarageApp
 
         private void SearchVehicleByProperty()
         {
+            
+            while (true)
             {
-                while (true)
+                ui.Print("Please navigate to search from vehicles through the menu by inputting the number \n(1, 2, 3 , 4 , 0)\n"
+                        + "\n1. Search vehicles by color and wheels"
+                        + "\n2. Search vehicles by type, color and wheels"
+                        + "\n3. Search vehicles by type"
+                        + "\n4. Search vehicles by color"
+                        + "\n0. Exit"
+                        );
+
+                string choice = ui.GetString();
+
+                switch (choice)
                 {
-                    ui.Print("Please navigate to search from vehicles through the menu by inputting the number \n(1, 2, 3 , 4 , 0)\n"
-                            + "\n1. Search vehicles by color and wheels"
-                            + "\n2. Search vehicles by type, color and wheels"
-                            + "\n3. Search vehicles by type"
-                            + "\n4. Search vehicles by color"
-                            + "\n0. Exit"
-                            );
-
-                    string choice = ui.GetString();
-
-                    switch (choice)
-                    {
-                        case "1":
-                            SearchByColorAndWheels();
-                            break;
-                        case "2":
-                            SearchByTypeColorAndWheels();
-                            break;
-                        case "3":
-                            SearchByType();
-                            break;
-                        case "4":
-                            SearchByColor();
-                            break;
-                        case "0":
-                            return; // Exit the method if the user chooses to go back to the main menu
-                        default:
-                            ui.Print("Invalid choice. Please try again.");
-                            break;
-                    }
+                    case "1":
+                        SearchByColorAndWheels();
+                        break;
+                    case "2":
+                        SearchByTypeColorAndWheels();
+                        break;
+                    case "3":
+                        SearchByType();
+                        break;
+                    case "4":
+                        SearchByColor();
+                        break;
+                    case "0":
+                        return; // Exit the method if the user chooses to go back to the main menu
+                    default:
+                        ui.Print("Invalid choice. Please try again.");
+                        break;
                 }
             }
+            
         }
 
         private void SearchByColorAndWheels()
