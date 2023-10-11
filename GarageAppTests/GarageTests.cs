@@ -65,9 +65,9 @@ namespace GarageApp.Garage.Tests
             var garage = new Garage<IVehicle>(4);
             var vehicles = new IVehicle[]
             {
-                new Car("Car"),
-                new Truck("Truck"),
-                new Motorcycle("Motorcycle")
+                new Car("abc908", "green", "Toyota", 1989, 4),
+                new Boat("ul345", "white", 0, 4, 6, 2),
+                new Bus("bs456", "blue", 6, 80, "el"),
             };
             garage.PopulateGarage(vehicles);
 
