@@ -5,13 +5,13 @@ namespace GarageApp.GarageHandler
 {
     public class Handler : IHandler
     {
-        private Garage<IVehicle> garage;
+        private IGarage<IVehicle> garage;
 
         public Handler(int capacity)
         {
             garage = new Garage<IVehicle>(capacity);
 
-            var vehicle = new Vehicle[]
+            var vehicles = new List<IVehicle>()
             {
                 new Car("abc123", "green", "Toyota", 1980, 4),
                 new Car("abc908", "green", "Toyota", 1989, 4),
@@ -21,12 +21,14 @@ namespace GarageApp.GarageHandler
                 new Motorcycle("mt891", "pink", 3, 3, 4),
                 new Airplane("ap90", "white", 3, 4, 250),
             };
-            garage.PopulateGarage(vehicle);
+
+            vehicles.ForEach(vehicle => garage.AddVehicle(vehicle));
         }
 
-        public void ParkedVehicle(IVehicle vehicle)
+        public bool ParkedVehicle(IVehicle vehicle)
         {
-            garage.AddVehicle(vehicle);
+
+           return garage.AddVehicle(vehicle);
         }
 
         public IVehicle? PickedUpVehicle(int index)
@@ -39,9 +41,10 @@ namespace GarageApp.GarageHandler
             return garage.FirstOrDefault(v => v.RegistrationNumber.ToLower() == regNo.ToLower());
         }
 
-        public IEnumerable<IVehicle> GetAllVehicles()
+        public IEnumerable<DisplayVehicleDto> GetAllVehicles()
         {
-            return garage;
+            return garage.Select((vehicle, index) => new DisplayVehicleDto { Index = index, Vehicle = vehicle });
+
         }
 
         public IEnumerable<IVehicle> Search(Func<IVehicle, bool> predicate)
@@ -54,13 +57,36 @@ namespace GarageApp.GarageHandler
                 }
             }
         }
-        public Dictionary<string, int> ListVehiclesType()
+        public IEnumerable<string> ListVehiclesType()
         {
-            var vehicleType = garage.GroupBy(v => v.GetType().Name)
-                            .ToDictionary(g => g.Key, g => g.Count());
+            return garage.GroupBy(v => v.GetType().Name).Select(g => $"Type: {g.Key}, Count: {g.Count()}");
+                            //.ToDictionary(g => g.Key, g => g.Count());
 
-            return vehicleType;
+           // return vehicleType;
         }
 
+        public bool IsGarageFull()
+        {
+            return garage.IsFull;
+        }
+
+        public IEnumerable<IVehicle> NewSearch(VehicleBaseProps props)
+        {
+           
+            var res = string.IsNullOrEmpty(props.VehicleType) ? garage
+                : garage.Where(v => v.GetType().Name == props.VehicleType);
+
+            if (!string.IsNullOrEmpty(props.Color))
+            {
+                res = res.Where(v => v.Color == props.Color);
+            }
+
+            //Nr
+
+            //Regno
+
+
+            return res.ToList();
+        }
     }
 }

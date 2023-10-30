@@ -15,8 +15,21 @@ namespace GarageApp.UI
 
         public int GetInt()
         {
-            return 1;
-        }
+            //return 1;
+
+            do
+            {
+                if (int.TryParse(Console.ReadLine(), out var val))
+                {
+                    return val;
+                }
+                else
+                    Console.WriteLine("Enter a valid number");
+
+            } while (true);
+        }    
+        
+       
 
     }
 }

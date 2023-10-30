@@ -19,29 +19,37 @@ namespace GarageApp.Garage
             this.Capacity = capacity;
         }
 
-        public void AddVehicle(T vehicle)
+        public bool AddVehicle(T vehicle)
         {
             //Check if garage is full!
+            bool ok = false;
+
             if (IsFull)
             {
-                throw new InvalidOperationException("The garage is full.");
+                return ok;
             }
             for (int i = 0; i < vehicles.Length; i++)
             {
                 if (vehicles[i] == null)
                 {
                     vehicles[i] = vehicle;
+                    ok = true;
                     Count++;
-                    return;
+                    break;
                 }
 
             }
+
+            return ok;
 
         }
 
         //count--
         public T? RemoveVehicle(int index)
         {
+           
+
+
             if (index < 0 || index >= vehicles.Length)
             {
                 Console.WriteLine("Invalid index.");
@@ -59,14 +67,14 @@ namespace GarageApp.Garage
             return default;
         }
 
-        public void PopulateGarage(T[] initialVehicles)
+        public void PopulateGarage(T[] initialVehicles, int capacity)
         {
-            if (initialVehicles.Length > vehicles.Length)
+            if (initialVehicles.Length > capacity)
             {
                 throw new InvalidOperationException("Not enough space in the garage to populate with all initial vehicles.");
             }
 
-            for (int i = 0; i < initialVehicles.Length; i++)
+            for (int i = 0; i < capacity; i++)
             {
                 vehicles[i] = initialVehicles[i];
                 Count++;

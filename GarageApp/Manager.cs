@@ -7,7 +7,7 @@ namespace GarageApp
     public class Manager
     {
         private readonly IUI ui;
-        private IHandler? handler;
+        private IHandler handler = null!;
 
         public Manager(IUI ui)
         {
@@ -22,10 +22,20 @@ namespace GarageApp
 
         private void BuildGarage()
         {
-            ui.Print("Enter garage capacity: ");
-            var capacity = int.Parse(ui.GetString());
 
-            handler = new Handler(capacity);
+            do
+            {
+                ui.Print("Enter garage capacity: ");
+                var capacity = ui.GetInt();//int.Parse(ui.GetString());
+
+                if (capacity > 2)
+                {
+                    handler = new Handler(capacity);
+                    return;
+                }
+
+            } while (true);
+
         }
 
         private void ShowMainMenu()
@@ -75,22 +85,21 @@ namespace GarageApp
 
         private void ListAllVehicles()
         {
-            var vehicles = handler!.GetAllVehicles();
-            var indexedVehicles = vehicles.Select((vehicle, index) => new { Index = index, Vehicle = vehicle });
+            //var vehicles = handler.GetAllVehicles();
+           // var indexedVehicles = vehicles.Select((vehicle, index) => new { Index = index, Vehicle = vehicle });
 
-            foreach (var indexedVehicle in indexedVehicles)
+            foreach (var indexedVehicle in handler.GetAllVehicles())
             {
-                ui.Print($"Slot {indexedVehicle.Index + 1}: A {indexedVehicle.Vehicle.Color} {indexedVehicle.Vehicle.GetType().Name} with license plate {indexedVehicle.Vehicle.RegistrationNumber}");
+                ui.Print($"Slot {indexedVehicle.Index + 1}: Vehicle: {indexedVehicle.Vehicle}");
             }
         }
 
         private void ListVehicleTypes()
         {
-            var vehicleCounts = handler!.ListVehiclesType();
-            foreach (var entry in vehicleCounts)
+            foreach (var entry in handler.ListVehiclesType())
             {
-                ui.Print($"Type: {entry.Key}, Count: {entry.Value}\n");
-                ui.Print($"{entry.Value} {entry.Key}s in the Garage.\n");
+                ui.Print(entry);
+               // ui.Print($"{entry.Value} {entry.Key}s in the Garage.\n");
             }
         }
 
@@ -98,7 +107,7 @@ namespace GarageApp
         {
             ui.Print("Enter registration number: ");
             var regNo = ui.GetString();
-            var found = handler!.GetVehicleByRegNum(regNo);
+            var found = handler.GetVehicleByRegNum(regNo);
             if (found != null)
             {
                 ui.Print(found.ToString()!);
@@ -111,7 +120,22 @@ namespace GarageApp
 
         private void SearchVehicleByProperty()
         {
-            
+
+            //Ask user for inputs for all cearchcriteria!
+            //Blank for not search
+            var props = GetCommonProps();
+
+            var res = handler.NewSearch(props);
+
+            foreach (var v in res) 
+            { 
+                ui.Print(v.ToString());
+            }
+
+           
+
+
+
             while (true)
             {
                 ui.Print("Please navigate to search from vehicles through the menu by inputting the number \n(1, 2, 3 , 4 , 0)\n"
@@ -145,7 +169,7 @@ namespace GarageApp
                         break;
                 }
             }
-            
+
         }
 
         private void SearchByColorAndWheels()
@@ -279,34 +303,38 @@ namespace GarageApp
 
         private void ParkVehicle()
         {
-            if (handler == null)
+            //if (handler == null)
+            //{
+            //    ui.Print("No garage available. Please build a garage first.");
+            //    return;
+            //}
+
+            if (handler.IsGarageFull())
             {
-                ui.Print("No garage available. Please build a garage first.");
+                Console.WriteLine("Garage is full");
                 return;
             }
 
             // a method to get the vehicle from the user
             IVehicle vehicle = GetVehicleFromUser()!;
 
-            try
-            {
-                handler.ParkedVehicle(vehicle);
-                ui.Print("Vehicle parked successfully.");
-            }
-            catch (InvalidOperationException ex)
-            {
-                ui.Print(ex.Message);
-            }
+                if(handler.ParkedVehicle(vehicle))
+                     ui.Print("Vehicle parked successfully.");
+                else
+                     Console.WriteLine("Park failed");
+
+
+
         }
 
         private IVehicle? PickUpVehicle()
         {
             ui.Print("Enter the index of the vehicle you want to pick up:");
-            int index = int.Parse(ui.GetString());
+            int index = ui.GetInt();//int.Parse(ui.GetString());
 
             try
             {
-                IVehicle? removedVehicle = handler!.PickedUpVehicle(index);
+                IVehicle? removedVehicle = handler.PickedUpVehicle(index);
 
                 if (removedVehicle != null)
                 {
@@ -326,32 +354,43 @@ namespace GarageApp
             }
         }
 
-        private IVehicle? GetVehicleFromUser()
+        private VehicleBaseProps GetCommonProps() 
         {
+            var vehicleProps = new VehicleBaseProps();
             ui.Print("Enter vehicle details:");
 
             ui.Print("Registration Number:");
-            string registrationNumber = ui.GetString();
+            vehicleProps.RegistrationNumber = ui.GetString();
+            //if(handler.GetVehicleByRegNum(vehicleProps.RegistrationNumber) is not null)
+            //{
+            //    ui.Print("Reg number already exists");
+            //}
 
             ui.Print("Color:");
-            string color = ui.GetString();
+            vehicleProps.Color = ui.GetString();
 
             ui.Print("NumberOfWheels:");
-            int numberOfWheels = ui.GetInt();
+            vehicleProps.NumberOfWheels = ui.GetInt();
 
             ui.Print("Vehicle Type (Car/Boat/Bus/Airplane/Motorcycle):");
-            string vehicleType = ui.GetString();
+            vehicleProps.VehicleType = ui.GetString();
 
-            IVehicle vehicle;
+            return vehicleProps;
+        }
 
-            switch (vehicleType.ToLower())
+        private IVehicle? GetVehicleFromUser()
+        {
+            var props = GetCommonProps();
+            IVehicle vehicle = null!;
+
+            switch (props.VehicleType.ToLower())
             {
                 case "car":
                     ui.Print("year:");
                     int year = ui.GetInt();
                     ui.Print("make:");
                     string make = ui.GetString();
-                    vehicle = new Car(registrationNumber, color, make, year, numberOfWheels);
+                    vehicle = new Car(props.RegistrationNumber, props.Color, make, year, props.NumberOfWheels);
                     break;
                 case "boat":
                     ui.Print("Number of Engines:");
@@ -360,28 +399,28 @@ namespace GarageApp
                     int boatSeats = ui.GetInt();
                     ui.Print("Length:");
                     int length = ui.GetInt();
-                    vehicle = new Boat(registrationNumber, color, numberOfWheels, boatSeats, length, boatEngines);
+                   // vehicle = new Boat(registrationNumber, color, numberOfWheels, boatSeats, length, boatEngines);
                     break;
                 case "bus":
                     ui.Print("Fuel Type:");
                     string fuelType = ui.GetString();
                     ui.Print("Number of Seats:");
                     int busSeats = ui.GetInt();
-                    vehicle = new Bus(registrationNumber, color, numberOfWheels, busSeats, fuelType);
+                  //  vehicle = new Bus(registrationNumber, color, numberOfWheels, busSeats, fuelType);
                     break;
                 case "motorcycle":
                     ui.Print("Number of Engines:");
                     int motorcycleEngines = ui.GetInt();
                     ui.Print("Number of Seats:");
                     int motorcycleSeats = ui.GetInt();
-                    vehicle = new Motorcycle(registrationNumber, color, motorcycleEngines, numberOfWheels, motorcycleSeats);
+                   // vehicle = new Motorcycle(registrationNumber, color, motorcycleEngines, numberOfWheels, motorcycleSeats);
                     break;
                 case "airplane":
                     ui.Print("Number of Engines:");
                     int airplaneEngines = ui.GetInt();
                     ui.Print("Number of Seats:");
                     int airplaneSeats = ui.GetInt();
-                    vehicle = new Airplane(registrationNumber, color, airplaneEngines, numberOfWheels, airplaneSeats);
+                  //  vehicle = new Airplane(registrationNumber, color, airplaneEngines, numberOfWheels, airplaneSeats);
                     break;
                 default:
                     ui.Print("Invalid vehicle type.");
